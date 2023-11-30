@@ -1,8 +1,5 @@
 import os
 import json
-from collections import defaultdict, Counter
-
-import pandas as pd
 
 
 with open("vectors.json") as f:
@@ -10,10 +7,9 @@ with open("vectors.json") as f:
 
 book_id = {vector["id"]: vector["book_id"] for vector in vectors}
 
-print(sorted(book_id.keys()))
 
-# for b_id in set(book_id.values()):
-#    os.makedirs(f"js_scores_filtered/{b_id}")
+for b_id in set(book_id.values()):
+    os.makedirs(f"js_scores_filtered/{b_id}")
 
 for fname in os.listdir("js_scores_filtered/"):
     print(fname)

@@ -1,12 +1,6 @@
 import json
 
-from time import time
 from collections import Counter, defaultdict
-
-from scipy.spatial.distance import jensenshannon
-
-
-import os
 
 
 with open("stem_data.json") as f:

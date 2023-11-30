@@ -57,6 +57,7 @@ def get_book_ids(url):
     return page_book_ids
 
 
+# Economics URL was scraped to get all of the gutenberg book_ids.
 subject_book_ids = get_book_ids(ECONOMICS_BASE_URL)
 
 print("subject:", len(subject_book_ids), subject_book_ids)
@@ -67,13 +68,16 @@ for book_id in subject_book_ids:
     if book_id not in data:
         print("Searching Book ID", book_id, "Total Books Searched", len(data))
         sleep(1)
+        # Each gutenberg book_id was then used to scrape the metadata provided within a table on the book summary page inside Gutenberg.
         data[book_id] = get_metadata(
             r.get(f"https://gutenberg.org/ebooks/{book_id}/").content
         )
+        # The book was then also used to scrape the book within txt format on Gutenberg.
         data[book_id]["raw_text"] = get_text(
             r.get(f"https://gutenberg.org/cache/epub/{book_id}/pg{book_id}.txt").content
         )
 
+        # The links that were retrieved from the metadata page were then used to scrape all the books available by that author.
         author_links = set()
         for link in data[book_id].get("author_link", []):
             author_links.add(link)
