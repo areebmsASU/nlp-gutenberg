@@ -18,12 +18,16 @@
 
 ### jupyter execute generate_stem_info.ipynb
 
-### not necessary --> python get_score_counts.py
-
-### not necessary --> jupyter execute standardize.ipynb
-
 ### python generate_vectors.py
 
 #### "vectors.json"
 
-### python generate_js.py
+### python generate_jensenshannon.py
+
+### python generate_book_summary.py
+
+#### "book_summary.json"
+
+### python generate_documents.py
+
+#### "results/\*.docx"
