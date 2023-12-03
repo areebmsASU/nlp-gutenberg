@@ -18,9 +18,9 @@
 
 ### jupyter execute generate_stem_info.ipynb
 
-### python get_score_counts.py
+### not necessary --> python get_score_counts.py
 
-### jupyter execute standardize.ipynb
+### not necessary --> jupyter execute standardize.ipynb
 
 ### python generate_vectors.py
 

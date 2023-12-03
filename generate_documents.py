@@ -5,6 +5,8 @@ from docx import Document
 
 from create_book import add_bookmark, add_hyperlink
 
+import numpy as np
+
 with open("data.json") as f:
     subjects = {
         int(k): (
@@ -53,45 +55,70 @@ def get_chunk_info(chunk_id, divergence=None):
     return info
 
 
+def get_death_date(book_id):
+    try:
+        return int(authors[int(book_id)].split("-")[-1])
+    except:
+        return 3000
+
+
 def least_divergence(chunk_id):
-    this_book_id = book_ids[chunk_id]
-    this_author_name = authors[book_ids[chunk_id]]
-    this_book = None
-    this_author = None
-    other = None
     with open(f"/mnt/e/js_scores/{chunk_id}.json") as f:
-        for matched_id, divergence in sorted(json.load(f).items(), key=lambda x: x[1]):
-            if book_ids[int(matched_id)] == this_book_id:
-                if this_book is None:
-                    this_book = (int(matched_id), divergence)
-            elif authors[book_ids[int(matched_id)]] == this_author_name:
-                if this_author is None:
-                    this_author = (int(matched_id), divergence)
-            elif not other:
-                other = (int(matched_id), divergence)
+        scores = json.load(f).items()
+    total = None
+    economics = None
+    book = None
+    author = None
+    most_matched_id = None
+    influenced_id = None
+
+    for matched_id, divergence in sorted(scores, key=lambda x: x[1]):
+        if 3901 <= book_ids[int(matched_id)] <= 3912:
+            continue
+        if divergence and not np.isnan(divergence) and int(matched_id) != int(chunk_id):
+            if total is None:
+                total = divergence
+            if book is None and book_ids[int(matched_id)] == book_id:
+                book = divergence
+            elif (
+                author is None
+                and authors[book_ids[int(matched_id)]] == authors[book_id]
+            ):
+                author = divergence
             else:
-                break
-    return this_book, this_author, other
+                if most_matched_id is None:
+                    most_matched_id = int(matched_id)
+                if influenced_id is None and get_death_date(
+                    book_ids[int(chunk_id)]
+                ) > get_death_date(book_ids[int(matched_id)]):
+                    influenced_id = int(matched_id)
+
+            if economics is None and subjects[book_ids[int(matched_id)]] == "Economics":
+                economics = divergence
+        if (
+            total
+            and economics
+            and book
+            and author
+            and most_matched_id
+            and influenced_id
+        ):
+            return total, economics, author, book, most_matched_id, influenced_id
+    return total, economics, author, book, most_matched_id, influenced_id
 
 
 for book_id, chunk_ids in chunk_id_by_book.items():
     doc = Document()
     doc.add_heading(titles[book_id])
     for chunk_id in chunk_ids:
-        # print(get_chunk_info(chunk_id, divergence=None))
-        same_book, same_author, other = least_divergence(chunk_id)
+        total = least_divergence(chunk_id)[0]
 
         paragraph = doc.add_paragraph("")
         add_bookmark(paragraph=paragraph, bookmark_name=f"chunk{chunk_id}")
 
-        # if same_book:
-        #    print("book", get_chunk_info(*same_book))
-        # if same_author:
-        #    print("author", get_chunk_info(*same_author))
-        if other:
+        if total:
             # print(chunk_id, other)
-            chunk_data = get_chunk_info(*other)
-            print(chunk_data)
+            chunk_data = get_chunk_info(int(chunk_id), total)
             add_hyperlink(
                 paragraph,
                 f"{chunk_data['book_id']}.docx#chunk{chunk_data['chunk_id']}",
@@ -100,10 +127,5 @@ for book_id, chunk_ids in chunk_id_by_book.items():
             )
         else:
             paragraph.add_run(chunk_texts[chunk_id])
-            # add_link(
-            #    paragraph,
-            #    f"0{chunk_data['book_id']}.docx#chunk{chunk_data['chunk_id']}",
-            #    chunk_texts[chunk_id],
-            #    tool_tip=f"Jensen-Shannon divergence: {chunk_data['divergence']}\n{chunk_data['title']} - {chunk_data['author']} \n#{chunk_data['chunk_id']}",
-            # )
+
     doc.save(f"results/{book_id}.docx")

@@ -70,6 +70,8 @@ def least_divergence(chunk_id):
     influenced_id = None
 
     for matched_id, divergence in sorted(scores, key=lambda x: x[1]):
+        if 3901 <= book_ids[int(matched_id)] <= 3912:
+            continue
         if divergence and not np.isnan(divergence) and int(matched_id) != int(chunk_id):
             if total is None:
                 total = divergence
@@ -104,6 +106,8 @@ def least_divergence(chunk_id):
 
 book_summary = []
 for book_id, chunk_ids in sorted(chunk_id_by_book.items()):
+    if 3901 <= book_id <= 3912:
+        continue
     this_book = []
     this_author = []
     total = []
